@@ -13,4 +13,4 @@ else
   echo "→ Flutter no está instalado: omito la app móvil"
 fi
 ( cd backend && python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt -r requirements-dev.txt )
-echo "Listo. Siguiente: GUIA.md paso 1 (Supabase)."
+echo "Listo. Siguiente: completa el .env y ejecuta las migraciones en Supabase (ver README)."
