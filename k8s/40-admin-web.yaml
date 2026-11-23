@@ -1,0 +1,49 @@
+# Sirve para desplegar el panel web del administrador
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: admin-web-config, namespace: chambapo }
+data:
+  config.js: |
+    window.__CHAMBAPO__ = {
+      SUPABASE_URL: "https://xxxx.supabase.co",            // ← reemplazar
+      SUPABASE_ANON_KEY: "eyJ...",                          // ← reemplazar (clave anon/publishable)
+      API_URL: "http://HOSTNAME-DEL-ELB-DE-LA-API"          // ← salida de: kubectl get svc api -n chambapo
+    };
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-web
+  namespace: chambapo
+  labels: { app: admin-web }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: admin-web }
+  template:
+    metadata:
+      labels: { app: admin-web }
+    spec:
+      containers:
+        - name: web
+          image: DOCKERHUB_USER/chambapo-admin:1.0     # ← poner tu usuario de Docker Hub
+          ports: [{ containerPort: 80 }]
+          volumeMounts:
+            - { name: config, mountPath: /usr/share/nginx/html/config.js, subPath: config.js }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+      volumes:
+        - name: config
+          configMap: { name: admin-web-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-web
+  namespace: chambapo
+spec:
+  type: LoadBalancer
+  selector: { app: admin-web }
+  ports:
+    - { port: 80, targetPort: 80 }

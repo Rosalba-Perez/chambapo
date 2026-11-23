@@ -1,0 +1,5 @@
+* text=auto
+*.sh text eol=lf
+backend/cron/crontab text eol=lf
+Dockerfile text eol=lf
+*.joblib binary

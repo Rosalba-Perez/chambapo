@@ -1,0 +1,6 @@
+// Ejemplo de configuración para producción
+window.__CHAMBAPO__ = {
+  SUPABASE_URL: "https://xxxx.supabase.co",
+  SUPABASE_ANON_KEY: "eyJ...",
+  API_URL: "http://<hostname-del-ELB-de-la-api>",
+};

@@ -1,0 +1,6 @@
+# node_modules de Windows romperían el build de Linux; la imagen hace su propio npm ci
+node_modules/
+dist/
+config.prod.js
+.env
+.env.*

@@ -1,0 +1,36 @@
+services:
+  api:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - ./backend/apps/prediccion/modelos:/app/apps/prediccion/modelos
+      - ./backend/firebase.json:/app/firebase.json:ro
+    expose: ["8000"]
+    restart: unless-stopped
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+
+  cron:
+    build: ./backend
+    env_file: .env
+    volumes:
+      - ./backend/apps/prediccion/modelos:/app/apps/prediccion/modelos
+      - ./backend/firebase.json:/app/firebase.json:ro
+    restart: unless-stopped
+    command: /app/cron/entrypoint.sh
+
+  admin-web:
+    build: ./admin-web
+    volumes:
+      - ./admin-web/config.prod.js:/usr/share/nginx/html/config.js:ro   # ← crea este archivo con tus valores
+    expose: ["80"]
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on: [api, admin-web]
+    restart: unless-stopped

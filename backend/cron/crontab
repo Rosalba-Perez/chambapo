@@ -1,0 +1,6 @@
+# Tareas programadas de Chambapo
+SHELL=/bin/bash
+BASH_ENV=/etc/chambapo.env
+* * * * *    root  cd /app && python manage.py ampliar_radio        >> /proc/1/fd/1 2>&1
+*/10 * * * * root  cd /app && python manage.py expirar_solicitudes  >> /proc/1/fd/1 2>&1
+0 * * * *    root  cd /app && python manage.py scoring              >> /proc/1/fd/1 2>&1

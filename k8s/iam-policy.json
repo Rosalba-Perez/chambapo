@@ -1,0 +1,7 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "Eks", "Effect": "Allow", "Action": "eks:*", "Resource": "*" },
+    { "Sid": "Ssm", "Effect": "Allow", "Action": ["ssm:GetParameter", "ssm:GetParameters"], "Resource": "*" }
+  ]
+}

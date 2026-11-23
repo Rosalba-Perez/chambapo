@@ -1,0 +1,7 @@
+<!-- Añadir a ios/Runner/Info.plist -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Chambapo usa tu ubicación para encontrar prestadores cerca y mostrar tu llegada al cliente.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Mientras vas en camino a un servicio, compartimos tu ubicación con el cliente.</string>
+<key>UIBackgroundModes</key>
+<array><string>location</string><string>fetch</string><string>remote-notification</string></array>

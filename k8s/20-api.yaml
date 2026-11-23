@@ -1,0 +1,51 @@
+# Sirve para desplegar la API de la app
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: chambapo
+  labels: { app: api }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: api }
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: DOCKERHUB_USER/chambapo-api:1.0      # ← poner tu usuario de Docker Hub
+          command: ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+          ports: [{ containerPort: 8000 }]
+          envFrom:
+            - secretRef: { name: chambapo-env }
+          env:
+            - { name: DJANGO_ALLOWED_HOSTS, value: "*" }
+            - { name: CORS_ALLOW_ALL, value: "1" }
+            - { name: FIREBASE_CREDENTIALS, value: "/app/firebase.json" }
+          volumeMounts:
+            - { name: firebase, mountPath: /app/firebase.json, subPath: firebase.json, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /api/schema/, port: 8000, httpHeaders: [{ name: Host, value: localhost }] }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+      volumes:
+        - name: firebase
+          secret:
+            secretName: chambapo-firebase
+            optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: chambapo
+spec:
+  type: LoadBalancer
+  selector: { app: api }
+  ports:
+    - { port: 80, targetPort: 8000 }

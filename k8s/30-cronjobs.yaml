@@ -1,0 +1,58 @@
+# Tareas automáticas que se ejecutan cada cierto tiempo
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: ampliar-radio, namespace: chambapo }
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: job
+              image: DOCKERHUB_USER/chambapo-api:1.0
+              command: ["python", "manage.py", "ampliar_radio"]
+              envFrom: [{ secretRef: { name: chambapo-env } }]
+              env: [{ name: FIREBASE_CREDENTIALS, value: "/app/firebase.json" }]
+              volumeMounts: [{ name: firebase, mountPath: /app/firebase.json, subPath: firebase.json, readOnly: true }]
+          volumes: [{ name: firebase, secret: { secretName: chambapo-firebase, optional: true } }]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: expirar-solicitudes, namespace: chambapo }
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: job
+              image: DOCKERHUB_USER/chambapo-api:1.0
+              command: ["python", "manage.py", "expirar_solicitudes"]
+              envFrom: [{ secretRef: { name: chambapo-env } }]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: scoring, namespace: chambapo }
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: job
+              image: DOCKERHUB_USER/chambapo-api:1.0
+              command: ["python", "manage.py", "scoring"]
+              envFrom: [{ secretRef: { name: chambapo-env } }]
