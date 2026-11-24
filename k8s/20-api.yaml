@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: DOCKERHUB_USER/chambapo-api:1.0      # ← poner tu usuario de Docker Hub
+          image: rosalbaperez/chambapo-api:1.0      # ← poner tu usuario de Docker Hub
           command: ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
           ports: [{ containerPort: 8000 }]
           envFrom:

@@ -1,0 +1,33 @@
+# Sirve para publicar la versión web de la app de clientes y técnicos
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-web
+  namespace: chambapo
+  labels: { app: app-web }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: app-web }
+  template:
+    metadata:
+      labels: { app: app-web }
+    spec:
+      containers:
+        - name: web
+          image: rosalbaperez/chambapo-app-web:1.0
+          ports: [{ containerPort: 80 }]
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-web
+  namespace: chambapo
+spec:
+  type: LoadBalancer
+  selector: { app: app-web }
+  ports:
+    - { port: 80, targetPort: 80 }

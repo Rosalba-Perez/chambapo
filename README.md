@@ -54,8 +54,8 @@ La API, el panel y las tareas automáticas se despliegan en un clúster de **Ama
 2. Construir y publicar las imágenes: `./scripts/build-push.sh <usuario-dockerhub> 1.0`
 3. Crear el clúster:
    ```bash
-   eksctl create cluster --name chambapo-cluster --nodes-min=3 --nodes-max=4 --instance-selector-vcpus=2 --instance-selector-memory=4 --version=1.32 --node-ami-family=AmazonLinux2023
-   aws eks --region us-east-1 update-kubeconfig --name chambapo-cluster
+   eksctl create cluster --name chambapo-cluster --region us-east-2 --nodes-min=3 --nodes-max=4 --instance-selector-vcpus=2 --instance-selector-memory=4 --version=1.35 --node-ami-family=AmazonLinux2023
+   aws eks --region us-east-2 update-kubeconfig --name chambapo-cluster
    ```
 4. Cargar la configuración y desplegar la API:
    ```bash
@@ -69,5 +69,15 @@ La API, el panel y las tareas automáticas se despliegan en un clúster de **Ama
    kubectl apply -f k8s/40-admin-web.yaml
    kubectl get svc admin-web -n chambapo
    ```
-6. Comprobar: abrir `http://<dirección-de-la-api>/api/docs/` y `http://<dirección-del-panel>/`.
-7. Al terminar, borrar todo para que no siga cobrando: `kubectl delete -f k8s/` y `eksctl delete cluster --name chambapo-cluster`.
+6. Publicar la versión web de la app (opcional):
+   ```bash
+   cd mobile
+   flutter build web --release --dart-define-from-file=env.json   # con API_URL apuntando a la API de AWS
+   cd ..
+   docker build -t <usuario-dockerhub>/chambapo-app-web:1.0 -f mobile/Dockerfile.web mobile/build/web
+   docker push <usuario-dockerhub>/chambapo-app-web:1.0
+   kubectl apply -f k8s/60-app-web.yaml
+   kubectl get svc app-web -n chambapo
+   ```
+7. Comprobar: abrir `http://<dirección-de-la-api>/api/docs/`, `http://<dirección-del-panel>/` y `http://<dirección-de-la-app>/`.
+8. Al terminar, borrar todo para que no siga cobrando: `kubectl delete namespace chambapo` y `eksctl delete cluster --name chambapo-cluster --region us-east-2`.

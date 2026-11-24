@@ -14,7 +14,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: job
-              image: DOCKERHUB_USER/chambapo-api:1.0
+              image: rosalbaperez/chambapo-api:1.0
               command: ["python", "manage.py", "ampliar_radio"]
               envFrom: [{ secretRef: { name: chambapo-env } }]
               env: [{ name: FIREBASE_CREDENTIALS, value: "/app/firebase.json" }]
@@ -35,7 +35,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: job
-              image: DOCKERHUB_USER/chambapo-api:1.0
+              image: rosalbaperez/chambapo-api:1.0
               command: ["python", "manage.py", "expirar_solicitudes"]
               envFrom: [{ secretRef: { name: chambapo-env } }]
 ---
@@ -53,6 +53,6 @@ spec:
           restartPolicy: Never
           containers:
             - name: job
-              image: DOCKERHUB_USER/chambapo-api:1.0
+              image: rosalbaperez/chambapo-api:1.0
               command: ["python", "manage.py", "scoring"]
               envFrom: [{ secretRef: { name: chambapo-env } }]

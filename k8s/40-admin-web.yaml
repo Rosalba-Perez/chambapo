@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: DOCKERHUB_USER/chambapo-admin:1.0     # ← poner tu usuario de Docker Hub
+          image: rosalbaperez/chambapo-admin:1.0     # ← poner tu usuario de Docker Hub
           ports: [{ containerPort: 80 }]
           volumeMounts:
             - { name: config, mountPath: /usr/share/nginx/html/config.js, subPath: config.js }
