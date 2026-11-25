@@ -114,21 +114,18 @@ class _CompletarRegistroScreenState extends ConsumerState<CompletarRegistroScree
   void initState() {
     super.initState();
     final pendientes = archivosPendientes;
+    final subida = subirArchivosPendientes();
+    if (subida == null) return;
     if (pendientes != null) {
-      archivosPendientes = null;
       _foto = pendientes.foto; _frente = pendientes.cedulaFrente;
       _reverso = pendientes.cedulaReverso; _certificado = pendientes.certificado;
-      _subiendoAuto = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _subirAutomatico());
     }
-  }
-
-  Future<void> _subirAutomatico() async {
-    try {
-      await _enviar();
-    } catch (e) {
+    _subiendoAuto = true;
+    subida.then((_) {
+      if (mounted) ref.invalidate(perfilProvider);
+    }, onError: (Object e) {
       if (mounted) setState(() { _subiendoAuto = false; _errorAuto = mensajeError(e); });
-    }
+    });
   }
 
   Future<void> _enviar() async {
@@ -138,7 +135,8 @@ class _CompletarRegistroScreenState extends ConsumerState<CompletarRegistroScree
       throw const ErrorConMensaje('Falta subir los documentos marcados en rojo.');
     }
     await AuthRepository().guardarArchivosPrestador(foto: _foto, cedulaFrente: _frente, cedulaReverso: _reverso, certificado: _certificado);
-    ref.invalidate(perfilProvider);
+    prepararArchivosRegistro(null);
+    if (mounted) ref.invalidate(perfilProvider);
   }
 
   @override

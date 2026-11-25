@@ -26,7 +26,7 @@ class PerfilTab extends ConsumerWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(p.nombre, style: tt.titleMedium),
             const SizedBox(height: 2),
-            Text([p.email, p.esPrestador ? 'prestador' : 'cliente'].where((x) => x.isNotEmpty).join(' · '), style: tt.bodySmall),
+            Text([p.email, p.esPrestador ? 'prestador' : p.esAdmin ? 'administrador' : 'cliente'].where((x) => x.isNotEmpty).join(' · '), style: tt.bodySmall),
           ])),
         ]))),
         const SizedBox(height: 10),

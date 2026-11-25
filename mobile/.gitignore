@@ -49,4 +49,5 @@ app.*.map.json
 
 # Variables locales de Flutter
 env.json
+env.apk.json
 env.web.json

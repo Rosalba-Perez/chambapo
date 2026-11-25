@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../../core/ui.dart';
+import '../admin/panel_admin_screen.dart';
 import '../auth/auth_provider.dart';
 import '../chat/conversaciones_tab.dart';
 import '../perfil/editar_perfil_screen.dart';
@@ -36,11 +37,7 @@ class _InicioScreenState extends ConsumerState<InicioScreen> {
                   'escríbenos a soporte de Chambapo.');
         }
         if (p.registroIncompleto) return CompletarRegistroScreen(p);
-        if (p.esAdmin) {
-          return const _CuentaBloqueada(icono: Icons.admin_panel_settings_outlined, titulo: 'Esta es una cuenta de administrador',
-              texto: 'La app es para clientes y técnicos. Para verificar prestadores, atender reportes y vetar usuarios, '
-                  'usa el panel web de administración.');
-        }
+        if (p.esAdmin) return const PanelAdminScreen();
         if (_uidAnterior != p.id) { _uidAnterior = p.id; _tab = 0; }
 
         final sinLeer = (ref.watch(noLeidosProvider).value ?? const <String, int>{}).values.fold(0, (a, b) => a + b);

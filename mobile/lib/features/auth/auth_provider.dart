@@ -41,6 +41,25 @@ class ArchivosRegistro {
   const ArchivosRegistro({required this.foto, required this.cedulaFrente, required this.cedulaReverso, this.certificado});
 }
 ArchivosRegistro? archivosPendientes;
+Future<void>? _subidaPendiente;
+
+void prepararArchivosRegistro(ArchivosRegistro? archivos) {
+  archivosPendientes = archivos;
+  _subidaPendiente = null;
+}
+
+// Sube una sola vez los archivos del registro, aunque la pantalla se abra varias veces
+Future<void>? subirArchivosPendientes() {
+  if (_subidaPendiente != null) return _subidaPendiente;
+  final a = archivosPendientes;
+  if (a == null) return null;
+  return _subidaPendiente = AuthRepository()
+      .guardarArchivosPrestador(foto: a.foto, cedulaFrente: a.cedulaFrente, cedulaReverso: a.cedulaReverso, certificado: a.certificado)
+      .then((_) => archivosPendientes = null, onError: (Object e) {
+    _subidaPendiente = null;
+    throw e;
+  });
+}
 
 final sesionProvider = StreamProvider<String?>((ref) async* {
   yield supabase.auth.currentUser?.id;

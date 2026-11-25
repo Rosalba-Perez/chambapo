@@ -3,7 +3,7 @@ import 'config.dart';
 import 'supabase_client.dart';
 
 class ApiClient {
-  final Dio _dio = Dio(BaseOptions(baseUrl: Config.apiUrl, connectTimeout: const Duration(seconds: 10)));
+  final Dio _dio = Dio(BaseOptions(baseUrl: Config.apiUrl, connectTimeout: const Duration(seconds: 60)));
 
   ApiClient() {
     _dio.interceptors.add(InterceptorsWrapper(onRequest: (o, h) {
@@ -17,15 +17,27 @@ class ApiClient {
 
   Future<Map<String, dynamic>> get(String path) => _llamar(() => _dio.get(path));
 
+  Future<List<Map<String, dynamic>>> getLista(String path) async {
+    try {
+      final r = await _dio.get(path);
+      return [for (final x in r.data as List) Map<String, dynamic>.from(x)];
+    } on DioException catch (e) {
+      throw _error(e);
+    }
+  }
+
   Future<Map<String, dynamic>> _llamar(Future<Response> Function() peticion) async {
     try {
       final r = await peticion();
       return Map<String, dynamic>.from(r.data);
     } on DioException catch (e) {
-      throw ApiException(e.response?.data is Map ? (e.response!.data['detail'] ?? 'Error') : 'Sin conexión con el servidor',
-          e.response?.statusCode);
+      throw _error(e);
     }
   }
+
+  ApiException _error(DioException e) =>
+      ApiException(e.response?.data is Map ? (e.response!.data['detail'] ?? 'Error') : 'Sin conexión con el servidor',
+          e.response?.statusCode);
 }
 
 class ApiException implements Exception {

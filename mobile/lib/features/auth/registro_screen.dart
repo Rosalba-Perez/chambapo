@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/selector_imagen.dart';
+import '../../core/supabase_client.dart';
 import '../../core/theme.dart';
 import '../../core/ui.dart';
 import 'auth_provider.dart';
@@ -53,16 +54,18 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
     setState(() { _intentado = true; _error = null; _errorEmail = null; });
     if (!_form.currentState!.validate() || _faltantes.isNotEmpty) return;
     setState(() => _enviando = true);
-    archivosPendientes = _esPrestador
+    prepararArchivosRegistro(_esPrestador
         ? ArchivosRegistro(foto: _foto!, cedulaFrente: _cedulaFrente!, cedulaReverso: _cedulaReverso!, certificado: _certificado)
-        : null;
+        : null);
     try {
       await AuthRepository().registrar(email: _email.text.trim(), clave: _clave.text, nombre: _nombre.text.trim(),
           rol: _rol, telefono: _tel.text.replaceAll(RegExp(r'\D'), ''), oficios: _oficios.toList());
+      if (!mounted) return;
       ref.invalidate(perfilProvider);
-      if (mounted) context.go('/');
+      context.go('/');
     } catch (e) {
-      archivosPendientes = null;
+      if (supabase.auth.currentSession == null) prepararArchivosRegistro(null);
+      if (!mounted) return;
       final m = mensajeError(e);
       setState(() {
         if (m == 'Este correo ya está registrado.' || m == 'Escribe un correo válido.') {
