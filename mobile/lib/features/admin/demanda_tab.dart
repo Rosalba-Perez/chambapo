@@ -4,14 +4,14 @@ import '../../core/theme.dart';
 import '../../core/ui.dart';
 import 'admin_comunes.dart';
 import 'admin_repository.dart';
-import 'graficas.dart';
+import 'graficas_demanda.dart';
 
-typedef DatosDemanda = ({List<Fila> categorias, List<Fila> diaFranja, List<Fila> barrios});
+typedef DatosDemanda = ({List<Fila> categorias, List<Fila> diaFranja, List<Fila> barrios, List<Fila> tiempo});
 
 final demandaProvider = FutureProvider.autoDispose.family<DatosDemanda, int>((ref, dias) async {
   final r = AdminRepository();
-  final res = await Future.wait([r.por('categoria', dias), r.por('dia_franja', dias), r.por('barrio', dias)]);
-  return (categorias: res[0], diaFranja: res[1], barrios: res[2]);
+  final res = await Future.wait([r.por('categoria', dias), r.por('dia_franja', dias), r.por('barrio', dias), r.por('tiempo_tomada', dias)]);
+  return (categorias: res[0], diaFranja: res[1], barrios: res[2], tiempo: res[3]);
 });
 
 const _umbralTasaBaja = 45;
@@ -48,37 +48,28 @@ class _DemandaTabState extends ConsumerState<DemandaTab> {
     );
   }
 
-  List<Widget> _contenido(DatosDemanda d) {
-    final porDia = List<double>.filled(7, 0);
-    final porFranja = {for (final f in franjas.keys) f: 0.0};
-    for (final c in d.diaFranja) {
-      final n = aNumero(c['n']) ?? 0;
-      final dia = aNumero(c['dia'])?.toInt();
-      if (dia != null && dia >= 0 && dia < 7) porDia[dia] += n;
-      if (porFranja.containsKey(c['franja'])) porFranja[c['franja']] = porFranja[c['franja']]! + n;
-    }
-    return [
-      PanelSeccion(
-        titulo: 'Conversión por tipo de servicio',
-        subtitulo: 'Porcentaje de solicitudes publicadas que toma un técnico, de mayor a menor.',
-        hijo: d.categorias.isEmpty ? sinDatos : _ConversionCategorias(d.categorias),
-      ),
-      PanelSeccion(
-        titulo: 'Solicitudes por día de la semana',
-        hijo: d.diaFranja.isEmpty ? sinDatos : GraficaBarras(etiquetas: diasSemana, valores: porDia),
-      ),
-      PanelSeccion(
-        titulo: 'Solicitudes por franja horaria',
-        hijo: d.diaFranja.isEmpty ? sinDatos
-            : GraficaBarras(etiquetas: franjas.values.toList(), valores: porFranja.values.toList(), color: CP.naranjaLogo),
-      ),
-      PanelSeccion(
-        titulo: 'Barrios con más solicitudes',
-        subtitulo: 'Cuántas se publicaron y qué porcentaje tomó un técnico.',
-        hijo: d.barrios.isEmpty ? sinDatos : _Barrios(d.barrios),
-      ),
-    ];
-  }
+  List<Widget> _contenido(DatosDemanda d) => [
+    PanelSeccion(
+      titulo: 'Conversión por tipo de servicio',
+      subtitulo: 'Porcentaje de solicitudes publicadas que toma un técnico, de mayor a menor.',
+      hijo: d.categorias.isEmpty ? sinDatos : _ConversionCategorias(d.categorias),
+    ),
+    PanelSeccion(
+      titulo: 'Mapa de demanda semanal',
+      subtitulo: 'Cuándo se publican más solicitudes: cuanto más intenso el azul, más demanda.',
+      hijo: d.diaFranja.isEmpty ? sinDatos : MapaSemanal(d.diaFranja),
+    ),
+    PanelSeccion(
+      titulo: 'Precisión del modelo por barrio',
+      subtitulo: 'Tasa real de contratación frente a la probabilidad estimada: cuánto acierta el modelo en cada zona.',
+      hijo: d.barrios.isEmpty ? sinDatos : DumbbellBarrios(d.barrios),
+    ),
+    PanelSeccion(
+      titulo: 'Velocidad de contratación por servicio',
+      subtitulo: 'Porcentaje acumulado de solicitudes tomadas según las horas desde su publicación.',
+      hijo: d.tiempo.isEmpty ? sinDatos : CurvasTomada(d.tiempo),
+    ),
+  ];
 }
 
 class _ConversionCategorias extends StatelessWidget {
@@ -123,30 +114,6 @@ class _ConversionCategorias extends StatelessWidget {
         MuestraColor(CP.verde, 'tomadas por un técnico'),
         MuestraColor(CP.naranjaLogo, 'menos del $_umbralTasaBaja %'),
       ]),
-    ]);
-  }
-}
-
-class _Barrios extends StatelessWidget {
-  final List<Fila> datos;
-  const _Barrios(this.datos);
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final filas = datos.where((b) => b['clave'] != null).take(8).toList();
-    return Column(children: [
-      for (final b in filas) Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(children: [
-          const Icon(Icons.place_outlined, size: 18, color: CP.apagado),
-          const SizedBox(width: 8),
-          Expanded(child: Text('${b['clave']}', style: tt.bodyMedium)),
-          Text('${numero(b['publicadas'])} publicadas', style: tt.bodySmall),
-          SizedBox(width: 56, child: Text(
-            porcentaje((aNumero(b['publicadas']) ?? 0) == 0 ? 0 : 100 * (aNumero(b['tomadas']) ?? 0) / aNumero(b['publicadas'])!, 0),
-            textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700, color: CP.verde))),
-        ]),
-      ),
     ]);
   }
 }

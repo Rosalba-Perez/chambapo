@@ -53,35 +53,6 @@ class GraficaLineas extends StatelessWidget {
   }
 }
 
-// Gráfica de barras verticales con una etiqueta debajo de cada barra
-class GraficaBarras extends StatelessWidget {
-  final List<String> etiquetas;
-  final List<double> valores;
-  final Color color;
-  const GraficaBarras({super.key, required this.etiquetas, required this.valores, this.color = CP.verde});
-  @override
-  Widget build(BuildContext context) {
-    final maximo = valores.fold<double>(1, math.max);
-    final intervalo = _intervalo(maximo);
-    return SizedBox(height: 200, child: BarChart(BarChartData(
-      maxY: (maximo / intervalo).ceil() * intervalo,
-      gridData: _rejilla(intervalo),
-      borderData: FlBorderData(show: false),
-      titlesData: FlTitlesData(
-        topTitles: _sinTitulos, rightTitles: _sinTitulos, leftTitles: _ejeIzquierdo(intervalo),
-        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 26,
-          getTitlesWidget: (v, meta) => Padding(padding: const EdgeInsets.only(top: 6),
-              child: Text(etiquetas[v.toInt()], style: _textoEje)))),
-      ),
-      barGroups: [
-        for (var i = 0; i < valores.length; i++)
-          BarChartGroupData(x: i, barRods: [BarChartRodData(toY: valores[i], color: color, width: 20,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)))]),
-      ],
-    )));
-  }
-}
-
 // Gráfica de dona con el total en el centro
 class GraficaDona extends StatelessWidget {
   final List<(double, Color)> partes;

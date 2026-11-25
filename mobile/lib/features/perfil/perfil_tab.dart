@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 import '../../core/ui.dart';
 import '../auth/auth_provider.dart';
+import '../notificaciones/push_service.dart';
 import '../solicitudes/perfil_prestador_screen.dart' show TarjetaResena;
 import '../solicitudes/solicitud.dart';
 import '../solicitudes/solicitudes_repository.dart';
@@ -60,6 +61,8 @@ class PerfilTab extends ConsumerWidget {
           _Dato(Icons.smartphone_outlined, 'Celular', p.telefono?.isNotEmpty == true ? p.telefono! : '—'),
         ])),
         const SizedBox(height: 12),
+        const _EstadoNotificaciones(),
+        const SizedBox(height: 12),
         Card(child: ListTile(
           leading: const Icon(Icons.logout, color: CP.error),
           title: const Text('Cerrar sesión', style: TextStyle(color: CP.error, fontWeight: FontWeight.w700)),
@@ -73,6 +76,38 @@ class PerfilTab extends ConsumerWidget {
         Text('Cerrar sesión borra la sesión de este dispositivo.', textAlign: TextAlign.center, style: tt.bodySmall),
       ]),
     );
+  }
+}
+
+// Muestra si este celular puede recibir notificaciones y permite reintentar
+class _EstadoNotificaciones extends StatefulWidget {
+  const _EstadoNotificaciones();
+  @override
+  State<_EstadoNotificaciones> createState() => _EstadoNotificacionesState();
+}
+
+class _EstadoNotificacionesState extends State<_EstadoNotificaciones> {
+  String _estado = PushService.estado;
+
+  @override
+  Widget build(BuildContext context) {
+    final ok = _estado.startsWith('Activas');
+    return Card(child: Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 14), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(ok ? Icons.notifications_active_outlined : Icons.notifications_off_outlined, color: ok ? CP.exito : CP.advertencia),
+          const SizedBox(width: 10),
+          Expanded(child: Text('Notificaciones', style: Theme.of(context).textTheme.titleSmall)),
+        ]),
+        const SizedBox(height: 6),
+        Text(_estado, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 10),
+        BotonAsync(contorno: true, estilo: estiloFantasma, hijo: const Text('Revisar de nuevo'), accion: () async {
+          final e = await PushService.revisar();
+          if (mounted) setState(() => _estado = e);
+        }),
+      ],
+    )));
   }
 }
 
